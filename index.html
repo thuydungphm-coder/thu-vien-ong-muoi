@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#FFFDF7" />
+  <title>Thư Viện Của Ong Và Muối</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Nunito', sans-serif;
+      background-color: #FFFDF7;
+      color: #4A3B32;
+    }
+    .card-shadow {
+      box-shadow: 0 6px 20px rgba(180, 130, 70, 0.08);
+    }
+    .book-card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .book-card:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 24px rgba(180, 130, 70, 0.14);
+    }
+    .icon-round {
+      fill: none;
+      stroke: currentColor;
+      stroke-width: 2.3;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+  </style>
+</head>
+<body class="min-h-screen pb-16">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-30 bg-[#FFFDF7]/95 backdrop-blur border-b border-[#F2E5CE] px-4 py-3">
+    <div class="max-w-5xl mx-auto flex items-center justify-between gap-2">
+      <div class="flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-2xl bg-[#FDE6A8] border border-[#F3CE72] text-[#8A5312] flex items-center justify-center shrink-0">
+          <svg class="w-6 h-6 icon-round" viewBox="0 0 24 24">
+            <ellipse cx="12" cy="13" rx="6" ry="5" fill="#F9C74F" stroke="#5C3D1E" stroke-width="2"/>
+            <path d="M9.5 8.5C9.5 8.5 12 10.5 14.5 8.5" stroke="#5C3D1E" stroke-width="2"/>
+            <path d="M12 8V18" stroke="#5C3D1E" stroke-width="2"/>
+            <path d="M7 10C5 8 5.5 5.5 8 6.5C9.5 7 10 8.5 10 8.5" fill="#FFFDF7" stroke="#5C3D1E" stroke-width="1.8"/>
+            <path d="M17 10C19 8 18.5 5.5 16 6.5C14.5 7 14 8.5 14 8.5" fill="#FFFDF7" stroke="#5C3D1E" stroke-width="1.8"/>
+            <circle cx="10.2" cy="12" r="0.9" fill="#5C3D1E" stroke="none"/>
+            <circle cx="13.8" cy="12" r="0.9" fill="#5C3D1E" stroke="none"/>
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-base sm:text-xl font-extrabold text-[#4A3B32] tracking-tight leading-tight">
+            THƯ VIỆN CỦA ONG VÀ MUỐI
+          </h1>
+          <p class="text-xs text-[#8C735B] font-semibold">Hành trình khám phá thế giới qua từng trang sách</p>
+        </div>
+      </div>
+
+      <button onclick="openPinModal('add')" class="bg-[#E68A3E] hover:bg-[#D6792E] active:scale-95 text-white font-bold px-3.5 py-2 rounded-2xl text-sm flex items-center gap-1.5 transition cursor-pointer shrink-0">
+        <svg class="w-4 h-4 icon-round" viewBox="0 0 24 24">
+          <path d="M12 5v14M5 12h14"/>
+        </svg>
+        <span>Thêm sách</span>
+      </button>
+    </div>
+  </header>
+
+  <!-- THÔNG BÁO TRẠNG THÁI ĐỒNG BỘ -->
+  <div id="syncBanner" class="max-w-5xl mx-auto px-4 pt-3 hidden">
+    <div id="syncBannerInner" class="text-xs font-bold px-3.5 py-2 rounded-2xl border"></div>
+  </div>
+
+  <main class="max-w-5xl mx-auto px-4 pt-4 space-y-5">
+
+    <!-- BẢNG THỐNG KÊ -->
+    <section class="bg-white rounded-3xl p-4 sm:p-5 border border-[#F2E5CE] card-shadow">
+      <div class="flex flex-wrap items-center justify-between gap-2 mb-4">
+        <h2 class="text-base font-extrabold text-[#4A3B32] flex items-center gap-2">
+          <span class="w-7 h-7 rounded-xl bg-[#FDF0D5] text-[#C47A2B] flex items-center justify-center">
+            <svg class="w-4 h-4 icon-round" viewBox="0 0 24 24">
+              <path d="M5 19v-6M12 19V5M19 19v-9"/>
+            </svg>
+          </span>
+          <span>Bảng thành tích & danh sách chờ</span>
+        </h2>
+
+        <select id="timeFilter" onchange="renderAll()" class="text-xs font-bold bg-[#FFF9EC] border border-[#EED9B4] text-[#5C4632] rounded-xl px-3 py-1.5 outline-none">
+          <option value="all">Tất cả thời gian</option>
+          <option value="year">Năm nay (2026)</option>
+          <option value="month">Tháng này</option>
+        </select>
+      </div>
+
+      <div class="grid grid-cols-2 sm:grid-cols-4 gap-2.5 sm:gap-3.5 mb-4">
+        <div class="bg-[#EDF6EA] rounded-2xl p-3 text-center border border-[#D4E8CE]">
+          <div class="text-lg sm:text-xl font-extrabold text-[#47733E]" id="statCompleted">0 cuốn</div>
+          <div class="text-xs font-bold text-[#5C8253] mt-0.5">Đã đọc xong</div>
+        </div>
+
+        <div class="bg-[#FFF4D9] rounded-2xl p-3 text-center border border-[#F5DFA8]">
+          <div class="text-lg sm:text-xl font-extrabold text-[#B36B16]" id="statReading">0 cuốn</div>
+          <div class="text-xs font-bold text-[#9C621D] mt-0.5">Đang đọc</div>
+        </div>
+
+        <div class="bg-[#F3ECE1] rounded-2xl p-3 text-center border border-[#E2D4BE]">
+          <div class="text-lg sm:text-xl font-extrabold text-[#6B543E]" id="statWishlist">0 cuốn</div>
+          <div class="text-xs font-bold text-[#7D654E] mt-0.5">Sách chờ đọc</div>
+        </div>
+
+        <div class="bg-[#FDEEE6] rounded-2xl p-3 text-center border border-[#F6D3C1] flex flex-col justify-center">
+          <div class="text-xs sm:text-sm font-extrabold text-[#B35638] leading-snug line-clamp-2" id="statTopFormat">-</div>
+          <div class="text-[11px] font-bold text-[#9C553E] mt-1">Hình thức nhiều nhất</div>
+        </div>
+      </div>
+
+      <div class="space-y-2.5 pt-3 border-t border-[#F5EBDA]" id="formatBars"></div>
+    </section>
+
+    <!-- TÌM KIẾM & LỌC -->
+    <section class="space-y-3">
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+        <div class="relative sm:col-span-1">
+          <span class="absolute left-3.5 top-3 text-[#B5987B]">
+            <svg class="w-4 h-4 icon-round" viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="M20 20l-3.5-3.5"/>
+            </svg>
+          </span>
+          <input type="text" id="searchInput" oninput="renderBooks()" placeholder="Tên sách, tác giả, nơi kiếm..."
+            class="w-full pl-10 pr-3.5 py-2.5 bg-white border border-[#EED9B4] rounded-2xl text-sm font-semibold text-[#4A3B32] placeholder-[#B5987B] focus:outline-none focus:border-[#E68A3E]" />
+        </div>
+
+        <select id="formatFilter" onchange="renderBooks()" class="bg-white border border-[#EED9B4] rounded-2xl px-3.5 py-2.5 text-sm font-bold text-[#5C4632] outline-none">
+          <option value="all">Tất cả hình thức sách</option>
+          <option value="Truyện tranh">Truyện tranh</option>
+          <option value="Truyện tranh chữ ít">Truyện tranh chữ ít</option>
+          <option value="Truyện chữ có minh họa">Truyện chữ có minh họa</option>
+          <option value="Truyện chữ / Tiểu thuyết">Truyện chữ / Tiểu thuyết</option>
+          <option value="Sách kiến thức / Bách khoa">Sách kiến thức / Bách khoa</option>
+        </select>
+
+        <select id="langFilter" onchange="renderBooks()" class="bg-white border border-[#EED9B4] rounded-2xl px-3.5 py-2.5 text-sm font
