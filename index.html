@@ -58,7 +58,7 @@
         </div>
       </div>
 
-      <button onclick="openPinModal('add')" class="bg-[#E68A3E] hover:bg-[#D6792E] active:scale-95 text-white font-bold px-3.5 py-2 rounded-2xl text-sm flex items-center gap-1.5 transition cursor-pointer shrink-0">
+      <button type="button" id="addBookBtn" onclick="openPinModal('add')" class="bg-[#E68A3E] hover:bg-[#D6792E] active:scale-95 text-white font-bold px-3.5 py-2 rounded-2xl text-sm flex items-center gap-1.5 transition cursor-pointer shrink-0">
         <svg class="w-4 h-4 icon-round" viewBox="0 0 24 24">
           <path d="M12 5v14M5 12h14"/>
         </svg>
@@ -141,4 +141,848 @@
           <option value="Sách kiến thức / Bách khoa">Sách kiến thức / Bách khoa</option>
         </select>
 
-        <select id="langFilter" onchange="renderBooks()" class="bg-white border border-[#EED9B4] rounded-2xl px-3.5 py-2.5 text-sm font
+        <select id="langFilter" onchange="renderBooks()" class="bg-white border border-[#EED9B4] rounded-2xl px-3.5 py-2.5 text-sm font-bold text-[#5C4632] outline-none">
+          <option value="all">Tất cả ngôn ngữ</option>
+          <option value="Tiếng Việt">Tiếng Việt</option>
+          <option value="Tiếng Anh">Tiếng Anh</option>
+        </select>
+      </div>
+
+      <div class="flex gap-2 overflow-x-auto pb-1">
+        <button type="button" onclick="setStatusFilter('all')" id="btn-status-all"
+          class="status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#E68A3E] text-white cursor-pointer shrink-0 flex items-center gap-1.5">
+          <span>Tất cả</span>
+        </button>
+
+        <button type="button" onclick="setStatusFilter('completed')" id="btn-status-completed"
+          class="status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#EDF6EA] text-[#47733E] border border-[#D4E8CE] cursor-pointer shrink-0 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 icon-round" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9"/>
+            <path d="M8.5 12.5l2.2 2.2 4.8-5"/>
+          </svg>
+          <span>Đã đọc xong</span>
+        </button>
+
+        <button type="button" onclick="setStatusFilter('reading')" id="btn-status-reading"
+          class="status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#FFF4D9] text-[#B36B16] border border-[#F5DFA8] cursor-pointer shrink-0 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 icon-round" viewBox="0 0 24 24">
+            <path d="M4 6.5C4 5.67 4.67 5 5.5 5H11v14H5.5C4.67 19 4 18.33 4 17.5v-11z"/>
+            <path d="M20 6.5c0-.83-.67-1.5-1.5-1.5H13v14h5.5c.83 0 1.5-.67 1.5-1.5v-11z"/>
+          </svg>
+          <span>Đang đọc</span>
+        </button>
+
+        <button type="button" onclick="setStatusFilter('wishlist')" id="btn-status-wishlist"
+          class="status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F3ECE1] text-[#6B543E] border border-[#E2D4BE] cursor-pointer shrink-0 flex items-center gap-1.5">
+          <svg class="w-3.5 h-3.5 icon-round" viewBox="0 0 24 24">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16z"/>
+          </svg>
+          <span>Sách chờ đọc</span>
+        </button>
+      </div>
+    </section>
+
+    <!-- KỆ SÁCH -->
+    <section>
+      <div id="loadingState" class="hidden text-center py-10 bg-white rounded-3xl border border-[#F2E5CE]">
+        <p class="font-bold text-[#8C735B] text-sm">Đang tải thư viện của Ong và Muối...</p>
+      </div>
+
+      <div id="bookGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3.5 sm:gap-5"></div>
+
+      <div id="emptyState" class="hidden text-center py-12 bg-white rounded-3xl border border-dashed border-[#E5CFA8]">
+        <div class="w-12 h-12 rounded-2xl bg-[#FFF4D9] text-[#C47A2B] flex items-center justify-center mx-auto mb-2">
+          <svg class="w-6 h-6 icon-round" viewBox="0 0 24 24">
+            <path d="M4 6.5C4 5.67 4.67 5 5.5 5H11v14H5.5C4.67 19 4 18.33 4 17.5v-11z"/>
+            <path d="M20 6.5c0-.83-.67-1.5-1.5-1.5H13v14h5.5c.83 0 1.5-.67 1.5-1.5v-11z"/>
+          </svg>
+        </div>
+        <p class="font-bold text-[#4A3B32]">Chưa tìm thấy cuốn sách nào phù hợp</p>
+        <p class="text-xs text-[#8C735B] mt-1">Mẹ thử đổi bộ lọc hoặc bấm Thêm sách để ghi chú nhé!</p>
+      </div>
+    </section>
+
+    <!-- FOOTER / XUẤT DỮ LIỆU -->
+    <footer class="pt-4 border-t border-[#F2E5CE] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-[#8C735B]">
+      <p>Đồng bộ đám mây • Mã PIN của mẹ: <strong class="text-[#4A3B32]">1234</strong></p>
+      <button type="button" onclick="exportCSV()" class="bg-white hover:bg-[#FFF9EC] text-[#5C4632] font-bold px-3.5 py-2 rounded-xl border border-[#EED9B4] cursor-pointer flex items-center gap-1.5">
+        <svg class="w-4 h-4 icon-round" viewBox="0 0 24 24">
+          <path d="M12 4v12M7.5 11.5L12 16l4.5-4.5"/>
+          <path d="M5 20h14"/>
+        </svg>
+        <span>Xuất file Excel/CSV dự phòng</span>
+      </button>
+    </footer>
+  </main>
+
+  <!-- MODAL 1: XÁC THỰC MÃ PIN 4 SỐ -->
+  <div id="pinModal" class="fixed inset-0 z-50 hidden bg-black/35 flex items-center justify-center p-4">
+    <div class="bg-[#FFFDF7] rounded-3xl max-w-xs w-full p-6 text-center shadow-xl border border-[#F2E5CE]">
+      <div class="w-12 h-12 bg-[#FFF4D9] text-[#B36B16] rounded-2xl flex items-center justify-center mx-auto mb-3">
+        <svg class="w-6 h-6 icon-round" viewBox="0 0 24 24">
+          <rect x="5" y="11" width="14" height="10" rx="3"/>
+          <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
+        </svg>
+      </div>
+      <h3 class="text-lg font-extrabold text-[#4A3B32]">Nhập mã PIN của mẹ</h3>
+      <p class="text-xs text-[#8C735B] mt-1 mb-4">Nhập 4 chữ số để thêm, sửa hoặc xóa sách</p>
+      <input type="password" id="pinInput" maxlength="4" inputmode="numeric" placeholder="••••"
+        class="w-36 text-center text-2xl tracking-[0.45em] font-extrabold py-2 bg-white border-2 border-[#EED9B4] text-[#4A3B32] rounded-2xl focus:outline-none focus:border-[#E68A3E] mb-2" />
+      <p id="pinError" class="text-xs text-[#C44B3B] font-bold hidden mb-3">Mã PIN chưa đúng, mẹ thử lại nhé!</p>
+      <div class="flex gap-2 mt-4">
+        <button type="button" onclick="closeModal('pinModal')" class="flex-1 py-2.5 rounded-xl font-bold text-sm bg-[#F3ECE0] text-[#6E5844] cursor-pointer">Hủy</button>
+        <button type="button" onclick="verifyPin()" class="flex-1 py-2.5 rounded-xl font-bold text-sm bg-[#E68A3E] text-white cursor-pointer">Xác nhận</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: FORM THÊM / SỬA SÁCH -->
+  <div id="formModal" class="fixed inset-0 z-50 hidden bg-black/35 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#FFFDF7] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-xl border border-[#F2E5CE] my-auto max-h-[90vh] overflow-y-auto">
+      <div class="flex items-center justify-between mb-4">
+        <h3 id="formTitle" class="text-lg font-extrabold text-[#4A3B32]">Thêm sách mới vào thư viện</h3>
+        <button type="button" onclick="closeModal('formModal')" class="text-[#8C735B] hover:text-[#4A3B32] p-1 cursor-pointer">
+          <svg class="w-5 h-5 icon-round" viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+
+      <form id="bookForm" onsubmit="saveBook(event)" class="space-y-3.5 text-sm">
+        <input type="hidden" id="bookId" />
+
+        <div>
+          <label class="block font-bold text-[#4A3B32] mb-1">Tên sách / truyện *</label>
+          <input type="text" id="title" required placeholder="Ví dụ: Dế Mèn Phiêu Lưu Ký"
+            class="w-full px-3.5 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]" />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Tác giả</label>
+            <input type="text" id="author" placeholder="Ví dụ: Tô Hoài"
+              class="w-full px-3.5 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]" />
+          </div>
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Ngôn ngữ *</label>
+            <select id="language" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]">
+              <option value="Tiếng Việt" selected>Tiếng Việt</option>
+              <option value="Tiếng Anh">Tiếng Anh</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Hình thức sách *</label>
+            <select id="format" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]">
+              <option value="Truyện tranh">Truyện tranh</option>
+              <option value="Truyện tranh chữ ít">Truyện tranh chữ ít</option>
+              <option value="Truyện chữ có minh họa" selected>Truyện chữ có minh họa</option>
+              <option value="Truyện chữ / Tiểu thuyết">Truyện chữ / Tiểu thuyết</option>
+              <option value="Sách kiến thức / Bách khoa">Sách kiến thức / Bách khoa</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Trạng thái *</label>
+            <select id="status" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]">
+              <option value="completed">Đã đọc xong</option>
+              <option value="reading">Đang đọc</option>
+              <option value="wishlist">Sách chờ đọc</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Chủ đề / Thể loại</label>
+            <select id="genre" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]">
+              <option value="Văn học thiếu nhi">Văn học thiếu nhi</option>
+              <option value="Cổ tích - Thần thoại">Cổ tích - Thần thoại</option>
+              <option value="Phiêu lưu - Trinh thám">Phiêu lưu - Trinh thám</option>
+              <option value="Khoa học - Tự nhiên">Khoa học - Tự nhiên</option>
+              <option value="Kỹ năng - Cảm xúc">Kỹ năng - Cảm xúc</option>
+              <option value="Động vật - Thiên nhiên">Động vật - Thiên nhiên</option>
+              <option value="Hài hước - Đời thường">Hài hước - Đời thường</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </div>
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Kiếm ở đâu (Nguồn)</label>
+            <select id="sourceType" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]">
+              <option value="Thư viện">Thư viện</option>
+              <option value="Shop / Nhà sách">Shop / Nhà sách</option>
+              <option value="Tủ sách gia đình">Tủ sách gia đình</option>
+              <option value="Khác">Khác</option>
+            </select>
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-[#4A3B32] mb-1">Ghi chú nơi kiếm sách</label>
+          <input type="text" id="sourceNote" placeholder="VD: Thư viện quận, đợt sau mượn / Shop..."
+            class="w-full px-3.5 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]" />
+        </div>
+
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Ngày bắt đầu đọc</label>
+            <input type="date" id="startDate" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]" />
+          </div>
+          <div>
+            <label class="block font-bold text-[#4A3B32] mb-1">Ngày đọc xong</label>
+            <input type="date" id="endDate" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]" />
+          </div>
+        </div>
+
+        <div>
+          <label class="block font-bold text-[#4A3B32] mb-1">Ảnh bìa sách</label>
+          <input type="file" id="coverFile" accept="image/*" onchange="handleImageFileChange(event)"
+            class="w-full text-xs text-[#6E5844] file:mr-3 file:py-2 file:px-3 file:rounded-xl file:border-0 file:font-bold file:bg-[#FFF4D9] file:text-[#8A5312] hover:file:bg-[#FDE6A8] cursor-pointer" />
+          <p id="uploadStatus" class="text-[11px] text-[#8C735B] mt-1"></p>
+          <input type="hidden" id="coverUrl" />
+        </div>
+
+        <div>
+          <label class="block font-bold text-[#4A3B32] mb-1">Mức độ yêu thích / Kỳ vọng của con</label>
+          <select id="rating" class="w-full px-3 py-2 bg-white border border-[#EED9B4] rounded-xl">
+            <option value="5">5 sao - Rất thích</option>
+            <option value="4">4 sao - Thích</option>
+            <option value="3">3 sao - Bình thường</option>
+            <option value="2">2 sao - Hơi ít thích</option>
+            <option value="1">1 sao - Chưa hợp gu con</option>
+          </select>
+        </div>
+
+        <div>
+          <label class="block font-bold text-[#4A3B32] mb-1">Tóm tắt nội dung, cảm nhận hoặc lý do muốn đọc</label>
+          <textarea id="summary" rows="3" placeholder="Ghi lại nội dung truyện, cảm nhận của con hoặc lý do lưu vào sách chờ đọc..."
+            class="w-full px-3.5 py-2 bg-white border border-[#EED9B4] rounded-xl focus:outline-none focus:border-[#E68A3E]"></textarea>
+        </div>
+
+        <div class="flex gap-2.5 pt-2">
+          <button type="button" onclick="closeModal('formModal')" class="flex-1 py-2.5 rounded-xl font-bold bg-[#F3ECE0] text-[#6E5844] cursor-pointer">Hủy</button>
+          <button type="submit" id="saveBtn" class="flex-1 py-2.5 rounded-xl font-bold bg-[#E68A3E] hover:bg-[#D6792E] text-white cursor-pointer">Lưu vào thư viện</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODAL 3: XEM CHI TIẾT CUỐN SÁCH -->
+  <div id="detailModal" class="fixed inset-0 z-50 hidden bg-black/35 flex items-center justify-center p-4 overflow-y-auto">
+    <div class="bg-[#FFFDF7] rounded-3xl max-w-lg w-full p-5 sm:p-6 shadow-xl border border-[#F2E5CE] my-auto max-h-[90vh] overflow-y-auto">
+      <div class="flex justify-end">
+        <button type="button" onclick="closeModal('detailModal')" class="text-[#8C735B] hover:text-[#4A3B32] p-1 cursor-pointer">
+          <svg class="w-5 h-5 icon-round" viewBox="0 0 24 24">
+            <path d="M6 6l12 12M18 6L6 18"/>
+          </svg>
+        </button>
+      </div>
+      <div id="detailContent"></div>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://ckhozpleplggabdepywv.supabase.co";
+    const SUPABASE_KEY = "sb_publishable_h4NrrW12027fFwTWLm4fyg_Aizx7llu";
+    const MASTER_PIN = "1234";
+    const BUCKET_NAME = "book-covers";
+
+    let sbClient = null;
+    try {
+      if (window.supabase && typeof window.supabase.createClient === "function") {
+        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+      }
+    } catch (e) {
+      console.error("Supabase init error:", e);
+    }
+
+    let currentStatusFilter = "all";
+    let pendingAction = null;
+    let selectedBookId = null;
+    let selectedImageFile = null;
+
+    const SAMPLE_BOOKS = [
+      {
+        id: 1001,
+        title: "Dế Mèn Phiêu Lưu Ký",
+        author: "Tô Hoài",
+        language: "Tiếng Việt",
+        format: "Truyện chữ có minh họa",
+        genre: "Phiêu lưu - Trinh thám",
+        status: "completed",
+        sourceType: "Tủ sách gia đình",
+        sourceNote: "Sách của mẹ từ nhỏ mang ra đọc cho con",
+        startDate: "2026-11-01",
+        endDate: "2026-11-08",
+        rating: 5,
+        cover: "https://images.unsplash.com/photo-1544947950-fa07a98d237f?auto=format&fit=crop&w=400&q=80",
+        summary: "Con rất thích đoạn Dế Mèn kết nghĩa anh em với Dế Trũi và cùng nhau đi chu du khắp thế giới."
+      },
+      {
+        id: 1002,
+        title: "Where's Spot?",
+        author: "Eric Hill",
+        language: "Tiếng Anh",
+        format: "Truyện tranh chữ ít",
+        genre: "Động vật - Thiên nhiên",
+        status: "completed",
+        sourceType: "Thư viện",
+        sourceNote: "Mượn tại thư viện đợt đầu tháng 11",
+        startDate: "2026-11-05",
+        endDate: "2026-11-06",
+        rating: 5,
+        cover: "https://images.unsplash.com/photo-1512820790803-83ca734da794?auto=format&fit=crop&w=400&q=80",
+        summary: "Con hào hứng đoán chỗ trốn của chú cún Spot bằng tiếng Anh."
+      },
+      {
+        id: 1003,
+        title: "Chuyện Con Mèo Dạy Hải Âu Bay",
+        author: "Luis Sepúlveda",
+        language: "Tiếng Việt",
+        format: "Truyện chữ có minh họa",
+        genre: "Kỹ năng - Cảm xúc",
+        status: "reading",
+        sourceType: "Shop / Nhà sách",
+        sourceNote: "Mua trên shop sách thiếu nhi",
+        startDate: "2026-11-18",
+        endDate: "",
+        rating: 5,
+        cover: "https://images.unsplash.com/photo-1532012197267-da84d127e765?auto=format&fit=crop&w=400&q=80",
+        summary: "Mẹ đang đọc cùng con mỗi tối trước khi đi ngủ."
+      },
+      {
+        id: 1004,
+        title: "Bách Khoa Toàn Thư Về Vũ Trụ",
+        author: "Nhiều tác giả",
+        language: "Tiếng Việt",
+        format: "Sách kiến thức / Bách khoa",
+        genre: "Khoa học - Tự nhiên",
+        status: "wishlist",
+        sourceType: "Thư viện",
+        sourceNote: "Thấy ở thư viện nhưng hết lượt mượn (mỗi lần chỉ được 3 cuốn) - đợt tới lấy trước",
+        startDate: "",
+        endDate: "",
+        rating: 5,
+        cover: "https://images.unsplash.com/photo-1589829085413-56de8ae18c73?auto=format&fit=crop&w=400&q=80",
+        summary: "Con rất tò mò về các hành tinh và sao chổi, ghi lại để đợt tới đi thư viện mượn ngay."
+      }
+    ];
+
+    let books = [...SAMPLE_BOOKS];
+
+    function showBanner(msg, type = "info") {
+      const box = document.getElementById("syncBanner");
+      const inner = document.getElementById("syncBannerInner");
+      if (!box || !inner) return;
+      box.classList.remove("hidden");
+      if (type === "error") {
+        inner.className = "text-xs font-bold px-3.5 py-2 rounded-2xl border bg-[#FDEEE6] text-[#B35638] border-[#F6D3C1]";
+      } else {
+        inner.className = "text-xs font-bold px-3.5 py-2 rounded-2xl border bg-[#EDF6EA] text-[#47733E] border-[#D4E8CE]";
+      }
+      inner.innerText = msg;
+    }
+
+    function mapRowToBook(row) {
+      return {
+        id: Number(row.id),
+        title: row.title || "",
+        author: row.author || "",
+        language: row.language || "Tiếng Việt",
+        format: row.format || "Truyện chữ có minh họa",
+        genre: row.genre || "Văn học thiếu nhi",
+        status: row.status || "completed",
+        sourceType: row.source_type || "Thư viện",
+        sourceNote: row.source_note || "",
+        startDate: row.start_date || "",
+        endDate: row.end_date || "",
+        rating: Number(row.rating) || 5,
+        cover: row.cover || "",
+        summary: row.summary || ""
+      };
+    }
+
+    function mapBookToRow(b) {
+      return {
+        id: Number(b.id),
+        title: b.title,
+        author: b.author,
+        language: b.language,
+        format: b.format,
+        genre: b.genre,
+        status: b.status,
+        source_type: b.sourceType,
+        source_note: b.sourceNote,
+        start_date: b.startDate,
+        end_date: b.endDate,
+        rating: Number(b.rating),
+        cover: b.cover,
+        summary: b.summary
+      };
+    }
+
+    async function loadBooksFromCloud() {
+      renderAll();
+      if (!sbClient) return;
+
+      try {
+        const { data, error } = await sbClient
+          .from("books")
+          .select("*")
+          .order("id", { ascending: false });
+
+        if (error) {
+          showBanner("Đang chạy chế độ xem trước. Mẹ kiểm tra lại bảng books trên Supabase nếu muốn đồng bộ mây.", "error");
+          return;
+        }
+
+        if (!data || data.length === 0) {
+          const rowsToInsert = SAMPLE_BOOKS.map(mapBookToRow);
+          const { error: seedErr } = await sbClient.from("books").insert(rowsToInsert);
+          if (!seedErr) {
+            books = [...SAMPLE_BOOKS];
+            showBanner("Đã khởi tạo thư viện mẫu trên mây. Mẹ có thể thêm hoặc sửa sách bất kỳ lúc nào!", "info");
+          }
+        } else {
+          books = data.map(mapRowToBook);
+        }
+        renderAll();
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    function renderStars(count) {
+      let html = '<div class="flex items-center gap-0.5 text-[#E89B2D]">';
+      for (let i = 1; i <= 5; i++) {
+        const fillAttr = i <= count ? 'fill="#F6C453"' : 'fill="none"';
+        html += `
+          <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" ${fillAttr}>
+            <path d="M12 3.5l2.7 5.5 6.1.9-4.4 4.3 1 6.1L12 17.4l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9L12 3.5z"/>
+          </svg>
+        `;
+      }
+      html += '</div>';
+      return html;
+    }
+
+    function getStatusLabel(status) {
+      if (status === "completed") return "Đã xong";
+      if (status === "reading") return "Đang đọc";
+      return "Chờ đọc";
+    }
+
+    function getStatusBadgeClass(status) {
+      if (status === "completed") return "bg-[#EDF6EA] text-[#47733E] border border-[#CDE3C6]";
+      if (status === "reading") return "bg-[#FFF4D9] text-[#B36B16] border border-[#F2D799]";
+      return "bg-[#F3ECE1] text-[#6B543E] border border-[#DECDAE]";
+    }
+
+    function calcDays(start, end) {
+      if (!start || !end) return null;
+      const diff = Math.round((new Date(end) - new Date(start)) / (1000 * 60 * 60 * 24)) + 1;
+      return diff > 0 ? diff : 1;
+    }
+
+    function formatDateVN(dateStr) {
+      if (!dateStr) return "Chưa cập nhật";
+      const [y, m, d] = dateStr.split("-");
+      return `${d}/${m}/${y}`;
+    }
+
+    function getFilteredByTime() {
+      const timeVal = document.getElementById("timeFilter").value;
+      const now = new Date();
+      return books.filter(b => {
+        if (timeVal === "all") return true;
+        if (b.status === "wishlist") return true;
+        const refDate = b.endDate || b.startDate;
+        if (!refDate) return false;
+        const d = new Date(refDate);
+        if (timeVal === "year") return d.getFullYear() === now.getFullYear();
+        if (timeVal === "month") return d.getFullYear() === now.getFullYear() && d.getMonth() === now.getMonth();
+        return true;
+      });
+    }
+
+    function renderStats() {
+      const list = getFilteredByTime();
+      const completed = list.filter(b => b.status === "completed");
+      const reading = list.filter(b => b.status === "reading");
+      const wishlist = list.filter(b => b.status === "wishlist");
+
+      document.getElementById("statCompleted").innerText = `${completed.length} cuốn`;
+      document.getElementById("statReading").innerText = `${reading.length} cuốn`;
+      document.getElementById("statWishlist").innerText = `${wishlist.length} cuốn`;
+
+      const readBooks = list.filter(b => b.status !== "wishlist");
+      const baseForBars = readBooks.length ? readBooks : list;
+
+      const counts = {};
+      baseForBars.forEach(b => {
+        counts[b.format] = (counts[b.format] || 0) + 1;
+      });
+
+      const sortedFormats = Object.entries(counts).sort((a, b) => b[1] - a[1]);
+      document.getElementById("statTopFormat").innerText = sortedFormats.length ? sortedFormats[0][0] : "Chưa có";
+
+      const barsContainer = document.getElementById("formatBars");
+      if (!baseForBars.length) {
+        barsContainer.innerHTML = `<p class="text-xs text-[#8C735B] italic">Chưa có dữ liệu thống kê hình thức sách.</p>`;
+        return;
+      }
+
+      barsContainer.innerHTML = sortedFormats.map(([fmt, count]) => {
+        const pct = Math.round((count / baseForBars.length) * 100);
+        return `
+          <div class="text-xs">
+            <div class="flex justify-between font-bold text-[#5C4632] mb-1">
+              <span>${fmt}</span>
+              <span>${count} cuốn (${pct}%)</span>
+            </div>
+            <div class="w-full bg-[#F7EFE1] rounded-full h-2 overflow-hidden">
+              <div class="bg-[#E8A84C] h-2 rounded-full" style="width: ${pct}%"></div>
+            </div>
+          </div>
+        `;
+      }).join("");
+    }
+
+    function setStatusFilter(status) {
+      currentStatusFilter = status;
+
+      const allBtn = document.getElementById("btn-status-all");
+      const compBtn = document.getElementById("btn-status-completed");
+      const readBtn = document.getElementById("btn-status-reading");
+      const wishBtn = document.getElementById("btn-status-wishlist");
+
+      allBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-white text-[#6E5844] border border-[#EED9B4] cursor-pointer shrink-0 flex items-center gap-1.5";
+      compBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#EDF6EA] text-[#47733E] border border-[#D4E8CE] cursor-pointer shrink-0 flex items-center gap-1.5";
+      readBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#FFF4D9] text-[#B36B16] border border-[#F5DFA8] cursor-pointer shrink-0 flex items-center gap-1.5";
+      wishBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#F3ECE1] text-[#6B543E] border border-[#E2D4BE] cursor-pointer shrink-0 flex items-center gap-1.5";
+
+      if (status === "all") {
+        allBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#E68A3E] text-white cursor-pointer shrink-0 flex items-center gap-1.5";
+      } else if (status === "completed") {
+        compBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#5E8C52] text-white cursor-pointer shrink-0 flex items-center gap-1.5";
+      } else if (status === "reading") {
+        readBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#D9822B] text-white cursor-pointer shrink-0 flex items-center gap-1.5";
+      } else if (status === "wishlist") {
+        wishBtn.className = "status-tab px-3.5 py-1.5 rounded-full text-xs font-bold bg-[#7A6048] text-white cursor-pointer shrink-0 flex items-center gap-1.5";
+      }
+
+      renderBooks();
+    }
+
+    function renderBooks() {
+      const search = document.getElementById("searchInput").value.toLowerCase().trim();
+      const formatVal = document.getElementById("formatFilter").value;
+      const langVal = document.getElementById("langFilter").value;
+      const baseList = getFilteredByTime();
+
+      const filtered = baseList.filter(b => {
+        const matchSearch =
+          b.title.toLowerCase().includes(search) ||
+          (b.author && b.author.toLowerCase().includes(search)) ||
+          (b.sourceType && b.sourceType.toLowerCase().includes(search)) ||
+          (b.sourceNote && b.sourceNote.toLowerCase().includes(search));
+        const matchFormat = formatVal === "all" || b.format === formatVal;
+        const matchLang = langVal === "all" || b.language === langVal;
+        const matchStatus = currentStatusFilter === "all" || b.status === currentStatusFilter;
+        return matchSearch && matchFormat && matchLang && matchStatus;
+      });
+
+      const grid = document.getElementById("bookGrid");
+      const empty = document.getElementById("emptyState");
+
+      if (!filtered.length) {
+        grid.innerHTML = "";
+        empty.classList.remove("hidden");
+        return;
+      }
+
+      empty.classList.add("hidden");
+      grid.innerHTML = filtered.map(b => `
+        <div onclick="openDetail(${b.id})" class="book-card bg-white rounded-2xl overflow-hidden border border-[#F2E5CE] card-shadow cursor-pointer flex flex-col">
+          <div class="relative aspect-[3/4] bg-[#FFF8EA] overflow-hidden">
+            <img src="${b.cover || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80'}" alt="${b.title}" class="w-full h-full object-cover" />
+            <span class="absolute top-2 left-2 text-[10px] font-extrabold px-2.5 py-0.5 rounded-full ${getStatusBadgeClass(b.status)}">
+              ${getStatusLabel(b.status)}
+            </span>
+            <span class="absolute top-2 right-2 text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-[#FFFDF7]/95 text-[#5C4632] border border-[#EED9B4]">
+              ${b.language === "Tiếng Anh" ? "EN" : "VI"}
+            </span>
+          </div>
+          <div class="p-3 flex-1 flex flex-col justify-between">
+            <div>
+              <span class="inline-block text-[10px] font-bold text-[#9C621D] bg-[#FFF4D9] px-2 py-0.5 rounded-lg mb-1">
+                ${b.format}
+              </span>
+              <h3 class="font-extrabold text-sm text-[#4A3B32] line-clamp-2 leading-snug">${b.title}</h3>
+              <p class="text-xs text-[#8C735B] mt-0.5 truncate">${b.author || 'Chưa rõ tác giả'}</p>
+              ${b.sourceType ? `<p class="text-[11px] font-semibold text-[#7A6048] mt-1 truncate">Nơi kiếm: ${b.sourceType}</p>` : ''}
+            </div>
+            <div class="mt-2.5 pt-2 border-t border-[#F7EFE1] flex items-center justify-between text-xs">
+              ${renderStars(b.rating)}
+              <span class="text-[11px] text-[#8C735B] font-semibold">${b.status === 'wishlist' ? 'Chờ đọc' : (b.endDate ? formatDateVN(b.endDate) : formatDateVN(b.startDate))}</span>
+            </div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    function renderAll() {
+      renderStats();
+      renderBooks();
+    }
+
+    function openDetail(id) {
+      const b = books.find(item => item.id === id);
+      if (!b) return;
+      const days = calcDays(b.startDate, b.endDate);
+
+      document.getElementById("detailContent").innerHTML = `
+        <div class="flex flex-col sm:flex-row gap-4">
+          <img src="${b.cover || 'https://images.unsplash.com/photo-1543002588-bfa74002ed7e?auto=format&fit=crop&w=400&q=80'}" class="w-32 sm:w-36 aspect-[3/4] object-cover rounded-2xl border border-[#F2E5CE] mx-auto sm:mx-0" />
+          <div class="flex-1 space-y-2">
+            <div class="flex flex-wrap gap-1.5">
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full ${getStatusBadgeClass(b.status)}">
+                ${getStatusLabel(b.status)}
+              </span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#FFF4D9] text-[#9C621D]">${b.format}</span>
+              <span class="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#F3ECE1] text-[#6B543E]">${b.language || 'Tiếng Việt'}</span>
+            </div>
+            <h3 class="text-xl font-extrabold text-[#4A3B32] leading-tight">${b.title}</h3>
+            <p class="text-sm font-bold text-[#8C735B]">Tác giả: ${b.author || 'Chưa cập nhật'}</p>
+            ${b.genre ? `<p class="text-xs font-semibold text-[#8C735B]">Chủ đề: ${b.genre}</p>` : ''}
+            <div class="pt-0.5">${renderStars(b.rating)}</div>
+          </div>
+        </div>
+
+        <div class="bg-[#FFF9EC] p-3 rounded-2xl mt-4 text-xs border border-[#F2E5CE] space-y-1">
+          <div class="font-extrabold text-[#4A3B32]">Kiếm ở đâu: ${b.sourceType || 'Chưa cập nhật'}</div>
+          <div class="text-[#6E5844]">${b.sourceNote || 'Chưa có ghi chú thêm về nơi mượn hoặc mua.'}</div>
+        </div>
+
+        ${b.status !== "wishlist" ? `
+          <div class="grid grid-cols-2 gap-2.5 bg-[#FFFDF7] p-3 rounded-2xl mt-3 text-xs border border-[#F2E5CE]">
+            <div>
+              <span class="text-[#8C735B] block">Ngày bắt đầu đọc:</span>
+              <strong class="text-[#4A3B32] text-sm">${formatDateVN(b.startDate)}</strong>
+            </div>
+            <div>
+              <span class="text-[#8C735B] block">Ngày đọc xong:</span>
+              <strong class="text-[#4A3B32] text-sm">${b.endDate ? formatDateVN(b.endDate) : 'Đang đọc tiếp'}</strong>
+              ${days ? `<span class="block text-[11px] text-[#47733E] font-bold mt-0.5">Đọc trong ${days} ngày</span>` : ''}
+            </div>
+          </div>
+        ` : ''}
+
+        <div class="mt-4">
+          <h4 class="text-xs font-extrabold uppercase tracking-wider text-[#8C735B] mb-1.5">Tóm tắt nội dung, cảm nhận hoặc ghi chú</h4>
+          <div class="bg-white p-3.5 rounded-2xl border border-[#F2E5CE] text-sm leading-relaxed text-[#4A3B32]">
+            ${b.summary || '<span class="italic text-[#A89078]">Chưa có ghi chú cho cuốn sách này.</span>'}
+          </div>
+        </div>
+
+        <div class="flex gap-2.5 mt-5 pt-3 border-t border-[#F2E5CE]">
+          <button type="button" onclick="openPinModal('edit', ${b.id})" class="flex-1 py-2.5 rounded-xl font-bold text-sm bg-[#FFF4D9] hover:bg-[#FDE6A8] text-[#8A5312] cursor-pointer">Sửa thông tin</button>
+          <button type="button" onclick="openPinModal('delete', ${b.id})" class="px-4 py-2.5 rounded-xl font-bold text-sm bg-[#FDEEE6] hover:bg-[#F9D9CA] text-[#B35638] cursor-pointer">Xóa</button>
+        </div>
+      `;
+      document.getElementById("detailModal").classList.remove("hidden");
+    }
+
+    function openPinModal(action, id = null) {
+      pendingAction = action;
+      selectedBookId = id;
+      const pinInput = document.getElementById("pinInput");
+      const pinError = document.getElementById("pinError");
+      const pinModal = document.getElementById("pinModal");
+      if (pinInput) pinInput.value = "";
+      if (pinError) pinError.classList.add("hidden");
+      if (pinModal) {
+        pinModal.classList.remove("hidden");
+        setTimeout(() => { if (pinInput) pinInput.focus(); }, 100);
+      }
+    }
+
+    async function verifyPin() {
+      const val = document.getElementById("pinInput").value;
+      if (val !== MASTER_PIN) {
+        document.getElementById("pinError").classList.remove("hidden");
+        return;
+      }
+      closeModal("pinModal");
+
+      if (pendingAction === "add") {
+        openBookForm();
+      } else if (pendingAction === "edit") {
+        closeModal("detailModal");
+        openBookForm(selectedBookId);
+      } else if (pendingAction === "delete") {
+        if (sbClient) {
+          const { error } = await sbClient.from("books").delete().eq("id", selectedBookId);
+          if (error) {
+            showBanner("Lỗi khi xóa sách trên mây: " + error.message, "error");
+            return;
+          }
+        }
+        books = books.filter(b => b.id !== selectedBookId);
+        closeModal("detailModal");
+        renderAll();
+        showBanner("Đã xóa sách khỏi thư viện.", "info");
+      }
+    }
+
+    function openBookForm(id = null) {
+      document.getElementById("bookForm").reset();
+      document.getElementById("bookId").value = "";
+      document.getElementById("coverUrl").value = "";
+      document.getElementById("uploadStatus").innerText = "";
+      selectedImageFile = null;
+
+      if (id) {
+        const b = books.find(item => item.id === id);
+        document.getElementById("formTitle").innerText = "Chỉnh sửa thông tin sách";
+        document.getElementById("bookId").value = b.id;
+        document.getElementById("title").value = b.title;
+        document.getElementById("author").value = b.author || "";
+        document.getElementById("language").value = b.language || "Tiếng Việt";
+        document.getElementById("format").value = b.format;
+        document.getElementById("status").value = b.status;
+        document.getElementById("genre").value = b.genre || "Văn học thiếu nhi";
+        document.getElementById("sourceType").value = b.sourceType || "Thư viện";
+        document.getElementById("sourceNote").value = b.sourceNote || "";
+        document.getElementById("startDate").value = b.startDate || "";
+        document.getElementById("endDate").value = b.endDate || "";
+        document.getElementById("rating").value = b.rating || 5;
+        document.getElementById("summary").value = b.summary || "";
+        document.getElementById("coverUrl").value = b.cover || "";
+      } else {
+        document.getElementById("formTitle").innerText = "Thêm sách mới vào thư viện";
+        const startEl = document.getElementById("startDate");
+        if (startEl) startEl.valueAsDate = new Date();
+      }
+      document.getElementById("formModal").classList.remove("hidden");
+    }
+
+    function handleImageFileChange(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      selectedImageFile = file;
+      document.getElementById("uploadStatus").innerText = `Đã chọn ảnh: ${file.name}`;
+    }
+
+    async function uploadCoverToStorage(file) {
+      if (!sbClient) return "";
+      const ext = (file.name.split(".").pop() || "jpg").toLowerCase();
+      const filePath = `cover_${Date.now()}_${Math.random().toString(36).slice(2, 7)}.${ext}`;
+
+      const { error } = await sbClient.storage
+        .from(BUCKET_NAME)
+        .upload(filePath, file, { cacheControl: "3600", upsert: false });
+
+      if (error) {
+        throw new Error("Không tải được ảnh bìa lên kho: " + error.message);
+      }
+
+      const { data } = sbClient.storage.from(BUCKET_NAME).getPublicUrl(filePath);
+      return data.publicUrl;
+    }
+
+    async function saveBook(event) {
+      event.preventDefault();
+      const saveBtn = document.getElementById("saveBtn");
+      saveBtn.disabled = true;
+      saveBtn.innerText = "Đang lưu...";
+
+      try {
+        let coverFinalUrl = document.getElementById("coverUrl").value;
+
+        if (selectedImageFile && sbClient) {
+          document.getElementById("uploadStatus").innerText = "Đang tải ảnh bìa lên mây...";
+          coverFinalUrl = await uploadCoverToStorage(selectedImageFile);
+        }
+
+        const idVal = document.getElementById("bookId").value;
+        const bookData = {
+          id: idVal ? Number(idVal) : Date.now(),
+          title: document.getElementById("title").value.trim(),
+          author: document.getElementById("author").value.trim(),
+          language: document.getElementById("language").value,
+          format: document.getElementById("format").value,
+          genre: document.getElementById("genre").value,
+          status: document.getElementById("status").value,
+          sourceType: document.getElementById("sourceType").value,
+          sourceNote: document.getElementById("sourceNote").value.trim(),
+          startDate: document.getElementById("startDate").value,
+          endDate: document.getElementById("endDate").value,
+          rating: Number(document.getElementById("rating").value),
+          cover: coverFinalUrl,
+          summary: document.getElementById("summary").value.trim()
+        };
+
+        const rowPayload = mapBookToRow(bookData);
+
+        if (idVal) {
+          if (sbClient) {
+            const { error } = await sbClient.from("books").update(rowPayload).eq("id", Number(idVal));
+            if (error) throw new Error(error.message);
+          }
+          const idx = books.findIndex(b => b.id === Number(idVal));
+          books[idx] = bookData;
+        } else {
+          if (sbClient) {
+            const { error } = await sbClient.from("books").insert([rowPayload]);
+            if (error) throw new Error(error.message);
+          }
+          books.unshift(bookData);
+        }
+
+        closeModal("formModal");
+        renderAll();
+        showBanner("Đã lưu sách thành công!", "info");
+      } catch (err) {
+        showBanner("Lưu chưa thành công: " + err.message, "error");
+      } finally {
+        saveBtn.disabled = false;
+        saveBtn.innerText = "Lưu vào thư viện";
+      }
+    }
+
+    function closeModal(id) {
+      const el = document.getElementById(id);
+      if (el) el.classList.add("hidden");
+    }
+
+    function exportCSV() {
+      const headers = ["Tên sách", "Tác giả", "Ngôn ngữ", "Hình thức sách", "Chủ đề", "Trạng thái", "Kiếm ở đâu", "Ghi chú nơi kiếm", "Ngày bắt đầu", "Ngày xong", "Đánh giá (sao)", "Tóm tắt / Ghi chú"];
+      const statusMap = { completed: "Đã đọc xong", reading: "Đang đọc", wishlist: "Sách chờ đọc" };
+      const rows = books.map(b => [
+        `"${b.title.replace(/"/g, '""')}"`,
+        `"${(b.author || '').replace(/"/g, '""')}"`,
+        `"${b.language || ''}"`,
+        `"${b.format}"`,
+        `"${(b.genre || '').replace(/"/g, '""')}"`,
+        statusMap[b.status] || b.status,
+        `"${(b.sourceType || '').replace(/"/g, '""')}"`,
+        `"${(b.sourceNote || '').replace(/"/g, '""')}"`,
+        b.startDate || "",
+        b.endDate || "",
+        b.rating,
+        `"${(b.summary || '').replace(/"/g, '""')}"`
+      ]);
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(r => r.join(","))].join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const link = document.createElement("a");
+      link.href = URL.createObjectURL(blob);
+      link.download = `Thu_Vien_Ong_Va_Muoi_${new Date().toISOString().slice(0,10)}.csv`;
+      link.click();
+    }
+
+    loadBooksFromCloud();
+  </script>
+</body>
+</html>
