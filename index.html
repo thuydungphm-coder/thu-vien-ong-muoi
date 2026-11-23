@@ -215,23 +215,24 @@
     </footer>
   </main>
 
-  <!-- MODAL 1: XÁC THỰC MÃ PIN 4 SỐ -->
-  <div id="pinModal" class="fixed inset-0 z-50 hidden bg-black/35 flex items-center justify-center p-4">
-    <div class="bg-[#FFFDF7] rounded-3xl max-w-xs w-full p-6 text-center shadow-xl border border-[#F2E5CE]">
-      <div class="w-12 h-12 bg-[#FFF4D9] text-[#B36B16] rounded-2xl flex items-center justify-center mx-auto mb-3">
-        <svg class="w-6 h-6 icon-round" viewBox="0 0 24 24">
+  <!-- MODAL 1: XÁC THỰC MÃ PIN 4 SỐ (LUÔN NỔI TRÊN BÀN PHÍM) -->
+  <div id="pinModal" class="fixed inset-0 z-[60] hidden bg-black/45 flex items-start sm:items-center justify-center pt-10 sm:pt-4 p-4">
+    <div class="bg-[#FFFDF7] rounded-3xl max-w-xs w-full p-5 text-center shadow-2xl border border-[#F2E5CE]">
+      <div class="w-10 h-10 bg-[#FFF4D9] text-[#B36B16] rounded-2xl flex items-center justify-center mx-auto mb-2">
+        <svg class="w-5 h-5 icon-round" viewBox="0 0 24 24">
           <rect x="5" y="11" width="14" height="10" rx="3"/>
           <path d="M8 11V7a4 4 0 0 1 8 0v4"/>
         </svg>
       </div>
-      <h3 class="text-lg font-extrabold text-[#4A3B32]">Nhập mã PIN của mẹ</h3>
-      <p class="text-xs text-[#8C735B] mt-1 mb-4">Nhập 4 chữ số để thêm, sửa hoặc xóa sách</p>
-      <input type="password" id="pinInput" maxlength="4" inputmode="numeric" placeholder="••••"
-        class="w-36 text-center text-2xl tracking-[0.45em] font-extrabold py-2 bg-white border-2 border-[#EED9B4] text-[#4A3B32] rounded-2xl focus:outline-none focus:border-[#E68A3E] mb-2" />
-      <p id="pinError" class="text-xs text-[#C44B3B] font-bold hidden mb-3">Mã PIN chưa đúng, mẹ thử lại nhé!</p>
-      <div class="flex gap-2 mt-4">
-        <button type="button" onclick="closeModal('pinModal')" class="flex-1 py-2.5 rounded-xl font-bold text-sm bg-[#F3ECE0] text-[#6E5844] cursor-pointer">Hủy</button>
-        <button type="button" onclick="verifyPin()" class="flex-1 py-2.5 rounded-xl font-bold text-sm bg-[#E68A3E] text-white cursor-pointer">Xác nhận</button>
+      <h3 class="text-base font-extrabold text-[#4A3B32]">Nhập mã PIN của mẹ</h3>
+      <p class="text-xs text-[#8C735B] mt-0.5 mb-3">Nhập 4 số (tự mở khi đủ 4 số)</p>
+      <input type="password" id="pinInput" maxlength="4" inputmode="numeric" enterkeyhint="done" placeholder="••••"
+        oninput="handlePinInput()" onkeydown="if(event.key==='Enter'){event.preventDefault();verifyPin();}"
+        class="w-36 text-center text-2xl tracking-[0.45em] font-extrabold py-2 bg-white border-2 border-[#EED9B4] text-[#4A3B32] rounded-2xl focus:outline-none focus:border-[#E68A3E]" />
+      <p id="pinError" class="text-xs text-[#C44B3B] font-bold hidden mt-2">Mã PIN chưa đúng, mẹ thử lại nhé!</p>
+      <div class="flex gap-2 mt-3.5">
+        <button type="button" onclick="closeModal('pinModal')" class="flex-1 py-2 rounded-xl font-bold text-sm bg-[#F3ECE0] text-[#6E5844] cursor-pointer">Hủy</button>
+        <button type="button" onclick="verifyPin()" class="flex-1 py-2 rounded-xl font-bold text-sm bg-[#E68A3E] text-white cursor-pointer">Xác nhận</button>
       </div>
     </div>
   </div>
@@ -387,6 +388,7 @@
     const SUPABASE_KEY = "sb_publishable_h4NrrW12027fFwTWLm4fyg_Aizx7llu";
     const MASTER_PIN = "1234";
     const BUCKET_NAME = "book-covers";
+    const PIN_UNLOCK_MS = 15 * 60 * 1000;
 
     let sbClient = null;
     try {
@@ -401,6 +403,7 @@
     let pendingAction = null;
     let selectedBookId = null;
     let selectedImageFile = null;
+    let pinUnlockedUntil = 0;
 
     const SAMPLE_BOOKS = [
       {
@@ -794,28 +797,7 @@
       document.getElementById("detailModal").classList.remove("hidden");
     }
 
-    function openPinModal(action, id = null) {
-      pendingAction = action;
-      selectedBookId = id;
-      const pinInput = document.getElementById("pinInput");
-      const pinError = document.getElementById("pinError");
-      const pinModal = document.getElementById("pinModal");
-      if (pinInput) pinInput.value = "";
-      if (pinError) pinError.classList.add("hidden");
-      if (pinModal) {
-        pinModal.classList.remove("hidden");
-        setTimeout(() => { if (pinInput) pinInput.focus(); }, 100);
-      }
-    }
-
-    async function verifyPin() {
-      const val = document.getElementById("pinInput").value;
-      if (val !== MASTER_PIN) {
-        document.getElementById("pinError").classList.remove("hidden");
-        return;
-      }
-      closeModal("pinModal");
-
+    async function runPendingAction() {
       if (pendingAction === "add") {
         openBookForm();
       } else if (pendingAction === "edit") {
@@ -834,6 +816,46 @@
         renderAll();
         showBanner("Đã xóa sách khỏi thư viện.", "info");
       }
+    }
+
+    function openPinModal(action, id = null) {
+      pendingAction = action;
+      selectedBookId = id;
+      if (Date.now() < pinUnlockedUntil) {
+        runPendingAction();
+        return;
+      }
+      const pinInput = document.getElementById("pinInput");
+      const pinError = document.getElementById("pinError");
+      const pinModal = document.getElementById("pinModal");
+      if (pinInput) pinInput.value = "";
+      if (pinError) pinError.classList.add("hidden");
+      if (pinModal) {
+        pinModal.classList.remove("hidden");
+        setTimeout(() => { if (pinInput) pinInput.focus(); }, 60);
+      }
+    }
+
+    function handlePinInput() {
+      const pinInput = document.getElementById("pinInput");
+      const pinError = document.getElementById("pinError");
+      if (!pinInput) return;
+      pinInput.value = pinInput.value.replace(/\D/g, "").slice(0, 4);
+      if (pinError) pinError.classList.add("hidden");
+      if (pinInput.value.length === 4) {
+        verifyPin();
+      }
+    }
+
+    async function verifyPin() {
+      const val = document.getElementById("pinInput").value;
+      if (val !== MASTER_PIN) {
+        document.getElementById("pinError").classList.remove("hidden");
+        return;
+      }
+      pinUnlockedUntil = Date.now() + PIN_UNLOCK_MS;
+      closeModal("pinModal");
+      await runPendingAction();
     }
 
     function openBookForm(id = null) {
